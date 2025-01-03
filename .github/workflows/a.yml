@@ -1,0 +1,46 @@
+name: Deploy Node.js Application
+
+on:
+  push:
+    branches:
+      - main  # Trigger the workflow when pushing to the main branch
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Checkout code
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # Set up Node.js
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '16' # Specify Node.js version
+        cache: 'npm'       # Cache npm dependencies
+
+    # Install dependencies
+    - name: Install dependencies
+      run: npm install
+
+    # Run tests
+    - name: Run tests
+      run: npm test
+
+    # Build application (optional if your project requires it)
+    - name: Build application
+      run: npm run build
+
+    # Deploy application
+    - name: Deploy to Server
+      env:
+        HOST: 3000
+      run: |
+        sshpass -p $PASSWORD ssh -o StrictHostKeyChecking=no $USERNAME@$HOST << EOF
+        cd /path/to/your/project
+        git pull origin main
+        npm install
+        pm2 restart app # Adjust according to your process manager
+        EOF
